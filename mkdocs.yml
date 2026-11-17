@@ -1,0 +1,29 @@
+site_name: Исследование генераторов статических сайтов
+site_description: Публикация результатов исследований с использованием Python SSG
+site_author: Кирилл Андреев
+
+theme:
+  name: material
+  language: ru
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Переключить на тёмную тему
+    - scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Переключить на светлую тему
+
+nav:
+  - Главная: index.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
