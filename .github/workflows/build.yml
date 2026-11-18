@@ -58,3 +58,32 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
           publish_branch: gh-pages
+
+  publish-preview:
+    name: Publish Pull Request Preview
+    needs: build
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    concurrency:
+      group: research-preview-publish
+      cancel-in-progress: false
+
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: research-site
+          path: site/
+
+      - name: Publish preview
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: preview-pages
+          destination_dir: pr-${{ github.event.pull_request.number }}
+          keep_files: true
