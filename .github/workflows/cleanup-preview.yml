@@ -1,0 +1,56 @@
+name: Cleanup Pull Request Preview
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull Request number'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup-preview:
+    name: Remove closed Pull Request preview
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    concurrency:
+      group: research-preview-publish
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout preview-pages
+        uses: actions/checkout@v4
+        with:
+          ref: preview-pages
+
+      - name: Remove preview directory
+        env:
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || exit 1
+
+          DIRECTORY="pr-${PR_NUMBER}"
+
+          if [[ ! -d "$DIRECTORY" ]]; then
+            echo "Preview $DIRECTORY does not exist."
+            exit 0
+          fi
+
+          git rm -r -- "$DIRECTORY"
+
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m "Remove preview for PR #${PR_NUMBER}"
+
+          git push origin HEAD:preview-pages
